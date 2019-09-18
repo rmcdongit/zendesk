@@ -1,121 +1,204 @@
-/*
- * jQuery v1.9.1 included
- */
-
-$(document).ready(function() {
-  // Set first tab as active by default
-  $(".tab:first-child, .tab-content:first-child").addClass("active");
-
-  // Toggle tabs when clicked
-  $(".tab").click(function() {
-    var $tab = $(this),
-      categoryId = $tab.data("id");
-
-    // Switch active class from prev to new tab
-    $(".tab.active, .tab-content.active").removeClass("active");
-    $tab.addClass("active");
-    $("#" + categoryId).addClass("active");
-  });
+document.addEventListener('DOMContentLoaded', function() {
+  function closest (element, selector) {
+    if (Element.prototype.closest) {
+      return element.closest(selector);
+    }
+    do {
+      if (Element.prototype.matches && element.matches(selector)
+        || Element.prototype.msMatchesSelector && element.msMatchesSelector(selector)
+        || Element.prototype.webkitMatchesSelector && element.webkitMatchesSelector(selector)) {
+        return element;
+      }
+      element = element.parentElement || element.parentNode;
+    } while (element !== null && element.nodeType === 1);
+    return null;
+  }
 
   // social share popups
-  $(".share a").click(function(e) {
-    e.preventDefault();
-    window.open(this.href, "", "height = 500, width = 500");
+  Array.prototype.forEach.call(document.querySelectorAll('.share a'), function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.open(this.href, '', 'height = 500, width = 500');
+    });
   });
 
   // show form controls when the textarea receives focus or backbutton is used and value exists
-  var $commentContainerTextarea = $(".comment-container textarea"),
-    $commentContainerFormControls = $(".comment-form-controls, .comment-ccs");
+  var commentContainerTextarea = document.querySelector('.comment-container textarea'),
+    commentContainerFormControls = document.querySelector('.comment-form-controls, .comment-ccs');
 
-  $commentContainerTextarea.one("focus", function() {
-    $commentContainerFormControls.show();
-  });
+  if (commentContainerTextarea) {
+    commentContainerTextarea.addEventListener('focus', function focusCommentContainerTextarea() {
+      commentContainerFormControls.style.display = 'block';
+      commentContainerTextarea.removeEventListener('focus', focusCommentContainerTextarea);
+    });
 
-  if ($commentContainerTextarea.val() !== "") {
-    $commentContainerFormControls.show();
+    if (commentContainerTextarea.value !== '') {
+      commentContainerFormControls.style.display = 'block';
+    }
   }
 
   // Expand Request comment form when Add to conversation is clicked
-  var $showRequestCommentContainerTrigger = $(".request-container .comment-container .comment-show-container"),
-    $requestCommentFields = $(".request-container .comment-container .comment-fields"),
-    $requestCommentSubmit = $(".request-container .comment-container .request-submit-comment");
+  var showRequestCommentContainerTrigger = document.querySelector('.request-container .comment-container .comment-show-container'),
+    requestCommentFields = document.querySelectorAll('.request-container .comment-container .comment-fields'),
+    requestCommentSubmit = document.querySelector('.request-container .comment-container .request-submit-comment');
 
-  $showRequestCommentContainerTrigger.on("click", function() {
-    $showRequestCommentContainerTrigger.hide();
-    $requestCommentFields.show();
-    $requestCommentSubmit.show();
-    $commentContainerTextarea.focus();
-  });
+  if (showRequestCommentContainerTrigger) {
+    showRequestCommentContainerTrigger.addEventListener('click', function() {
+      showRequestCommentContainerTrigger.style.display = 'none';
+      Array.prototype.forEach.call(requestCommentFields, function(e) { e.style.display = 'block'; });
+      requestCommentSubmit.style.display = 'inline-block';
 
-  // Mark as solved button
-  var $requestMarkAsSolvedButton = $(".request-container .mark-as-solved:not([data-disabled])"),
-    $requestMarkAsSolvedCheckbox = $(".request-container .comment-container input[type=checkbox]"),
-    $requestCommentSubmitButton = $(".request-container .comment-container input[type=submit]");
-
-  $requestMarkAsSolvedButton.on("click", function() {
-    $requestMarkAsSolvedCheckbox.attr("checked", true);
-    $requestCommentSubmitButton.prop("disabled", true);
-    $(this).attr("data-disabled", true).closest("form").submit();
-  });
-
-  // Change Mark as solved text according to whether comment is filled
-  var $requestCommentTextarea = $(".request-container .comment-container textarea");
-
-  $requestCommentTextarea.on("keyup", function() {
-    if ($requestCommentTextarea.val() !== "") {
-      $requestMarkAsSolvedButton.text($requestMarkAsSolvedButton.data("solve-and-submit-translation"));
-      $requestCommentSubmitButton.prop("disabled", false);
-    } else {
-      $requestMarkAsSolvedButton.text($requestMarkAsSolvedButton.data("solve-translation"));
-      $requestCommentSubmitButton.prop("disabled", true);
-    }
-  });
-
-  // Disable submit button if textarea is empty
-  if ($requestCommentTextarea.val() === "") {
-    $requestCommentSubmitButton.prop("disabled", true);
-  }
-
-  // Submit requests filter form in the request list page
-  $("#request-status-select, #request-organization-select").on("change", function() {
-    search();
-  });
-
-  // Submit requests filter form in the request list page
-  $("#quick-search").on("keypress", function(e) {
-    if (e.which === 13) {
-      search();
-    }
-  });
-
-  function search() {
-    window.location.search = $.param({
-      query: $("#quick-search").val(),
-      status: $("#request-status-select").val(),
-      organization_id: $("#request-organization-select").val(),
+      if (commentContainerTextarea) {
+        commentContainerTextarea.focus();
+      }
     });
   }
 
-  $(".header .icon-menu").on("click", function(e) {
-    e.stopPropagation();
-    var menu = document.getElementById("user-nav");
-    var isExpanded = menu.getAttribute("aria-expanded") === "true";
-    menu.setAttribute("aria-expanded", !isExpanded);
+  // Mark as solved button
+  var requestMarkAsSolvedButton = document.querySelector('.request-container .mark-as-solved:not([data-disabled])'),
+    requestMarkAsSolvedCheckbox = document.querySelector('.request-container .comment-container input[type=checkbox]'),
+    requestCommentSubmitButton = document.querySelector('.request-container .comment-container input[type=submit]');
+
+  if (requestMarkAsSolvedButton) {
+    requestMarkAsSolvedButton.addEventListener('click', function () {
+      requestMarkAsSolvedCheckbox.setAttribute('checked', true);
+      requestCommentSubmitButton.disabled = true;
+      this.setAttribute('data-disabled', true);
+      // Element.closest is not supported in IE11
+      closest(this, 'form').submit();
+    });
+  }
+
+  // Change Mark as solved text according to whether comment is filled
+  var requestCommentTextarea = document.querySelector('.request-container .comment-container textarea');
+
+  if (requestCommentTextarea) {
+    requestCommentTextarea.addEventListener('input', function() {
+      if (requestCommentTextarea.value === '') {
+        if (requestMarkAsSolvedButton) {
+          requestMarkAsSolvedButton.innerText = requestMarkAsSolvedButton.getAttribute('data-solve-translation');
+        }
+        requestCommentSubmitButton.disabled = true;
+      } else {
+        if (requestMarkAsSolvedButton) {
+          requestMarkAsSolvedButton.innerText = requestMarkAsSolvedButton.getAttribute('data-solve-and-submit-translation');
+        }
+        requestCommentSubmitButton.disabled = false;
+      }
+    });
+  }
+
+  // Disable submit button if textarea is empty
+  if (requestCommentTextarea && requestCommentTextarea.value === '') {
+    requestCommentSubmitButton.disabled = true;
+  }
+
+  // Submit requests filter form in the request list page
+  Array.prototype.forEach.call(document.querySelectorAll('#request-status-select, #request-organization-select'), function(el) {
+    el.addEventListener('change', function(e) {
+      e.stopPropagation();
+      closest(this, 'form').submit();
+    });
   });
 
-  if ($("#user-nav").children().length === 0) {
-    $(".header .icon-menu").hide();
+  function toggleNavigation(toggleElement) {
+    var menu = document.getElementById('user-nav');
+    var isExpanded = menu.getAttribute('aria-expanded') === 'true';
+    menu.setAttribute('aria-expanded', !isExpanded);
+    toggleElement.setAttribute('aria-expanded', !isExpanded);
+  }
+
+  var burgerMenu = document.querySelector('.header .icon-menu');
+  var userMenu = document.querySelector('#user-nav');
+
+  burgerMenu.addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleNavigation(this);
+  });
+
+  burgerMenu.addEventListener('keyup', function(e) {
+    if (e.keyCode === 13) { // Enter key
+      e.stopPropagation();
+      toggleNavigation(this);
+    }
+  });
+
+  userMenu.addEventListener('keyup', function(e) {
+    if (e.keyCode === 27) { // Escape key
+      e.stopPropagation();
+      this.setAttribute('aria-expanded', false);
+      burgerMenu.setAttribute('aria-expanded', false);
+    }
+  });
+
+  if (userMenu.children.length === 0) {
+    burgerMenu.style.display = 'none';
   }
 
   // Submit organization form in the request page
-  $("#request-organization select").on("change", function() {
-    this.form.submit();
-  });
+  var requestOrganisationSelect = document.querySelector('#request-organization select');
+
+  if (requestOrganisationSelect) {
+    requestOrganisationSelect.addEventListener('change', function() {
+      closest(this, 'form').submit();
+    });
+  }
 
   // Toggles expanded aria to collapsible elements
-  $(".collapsible-nav, .collapsible-sidebar").on("click", function(e) {
-    e.stopPropagation();
-    var isExpanded = this.getAttribute("aria-expanded") === "true";
-    this.setAttribute("aria-expanded", !isExpanded);
+  Array.prototype.forEach.call(document.querySelectorAll('.collapsible-nav, .collapsible-sidebar'), function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var isExpanded = this.getAttribute('aria-expanded') === 'true';
+      this.setAttribute('aria-expanded', !isExpanded);
+    });
   });
+
+  // If a section has more than 6 subsections, we collapse the list, and show a trigger to display them all
+  const seeAllTrigger = document.querySelector("#see-all-sections-trigger");
+  const subsectionsList = document.querySelector(".section-list");
+
+  if (subsectionsList && subsectionsList.children.length > 6) {
+    seeAllTrigger.setAttribute("aria-hidden", false);
+
+    seeAllTrigger.addEventListener("click", function(e) {
+      subsectionsList.classList.remove("section-list--collapsed");
+      seeAllTrigger.parentNode.removeChild(seeAllTrigger);
+    });
+  }
 });
+
+
+// Load forms based on user tags
+/*
+
+$(window).load(function() {
+    var i = 0;
+    var checkExist = setInterval(function() {
+        i++;
+        if ($("a.nesty-input").length){
+            clearInterval(checkExist);
+            $("a.nesty-input").each(function() {
+                $(this).bind( "click", function() {
+                    //Create dictionary of available forms
+                    var forms = {}
+                    var options = document.getElementById("request_issue_type_select").getElementsByTagName("option");
+                    for (i = 1; i < options.length; i++) {
+                        forms[options[i].text] = options[i].value;
+                    };
+                    //Iterate through each form 
+                    Object.keys(forms).forEach(function(item){
+                        formTag = item.split(" - ")[0].toLowerCase();
+                        //Remove forms that do not meet user criteria
+                        if (!(~HelpCenter.user.tags.indexOf(formTag))){
+                            $(("#"+forms[item])).remove();
+                        }
+                    });
+                });
+            });
+        }
+        if (i > 10){
+            clearInterval(checkExist);
+        }
+    }, 100);
+});
+*/
